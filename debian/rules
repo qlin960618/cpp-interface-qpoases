@@ -17,7 +17,7 @@ binary-indep:
 binary-arch:
 	cd $(BUILDDIR); cmake -P cmake_install.cmake
 	mkdir -p debian/tmp/DEBIAN
-        dpkg-gencontrol -plibdqrobotics-interface-qpoases
+	dpkg-gencontrol -plibdqrobotics-interface-qpoases
 	dpkg --build debian/tmp ..
 
 # firstly called by launchpad
