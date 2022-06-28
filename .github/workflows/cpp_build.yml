@@ -1,0 +1,60 @@
+name: CPP Build
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        testbranches: ['release','master']
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install prerequisites (apt)
+        run: |
+          sudo apt install cmake g++ libeigen3-dev fakeroot
+          
+      - name: Install prerequisites (qpOASES)
+        run: |
+          git clone --single-branch --depth 1 https://github.com/coin-or/qpOASES.git　
+          cd qpOASES
+          sed -i -e 's/option(BUILD_SHARED_LIBS "If ON, build shared library instead of static" OFF)/option(BUILD_SHARED_LIBS "If ON, build shared library instead of static" ON)/g' CMakeLists.txt
+          mkdir build
+          cd build
+          cmake ..
+          make
+          sudo make install
+          sudo ldconfig
+          cd ..
+          cd ..
+          
+      - name: Build & install DQRobotics (${{ matrix.testbranches }})
+        run: |
+          git clone --depth 1 -b ${{ matrix.testbranches }} https://github.com/dqrobotics/cpp
+          cd cpp
+          sh .github/scripts/ubuntu/install_prerequisites.sh
+          sh .github/scripts/ubuntu/build.sh
+          sh .github/scripts/ubuntu/install.sh
+          cd ..
+          
+      - name: Build & install cpp-interface-qpoases
+        run: |
+          git checkout 
+          chmod +x debian/rules
+          fakeroot debian/rules clean
+          fakeroot debian/rules build
+          fakeroot debian/rules binary
+          cd ..
+          sudo apt install ./*.deb
+          
+      - name: Clone cpp-examples (${{ matrix.testbranches }})
+        run: git clone --depth 1 -b ${{ matrix.testbranches }} https://github.com/dqrobotics/cpp-examples.git
+          
+      - name: Build examples
+        run: |
+          cd cpp-examples
+          chmod +x .build_qpoases.sh
+          ./.build_qpoases.sh
