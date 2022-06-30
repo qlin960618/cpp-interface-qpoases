@@ -97,11 +97,11 @@ namespace DQ_robotics
          * @param beq the m x 1 value for the inequality constraints.
          * @return the optimal x
          */
-        VectorXd solve_quadratic_program(const MatrixXd& H, const VectorXd& f, const MatrixXd A, const VectorXd& b, const MatrixXd& Aeq, const VectorXd& beq)
+        VectorXd solve_quadratic_program(const MatrixXd& H, const VectorXd& f, const MatrixXd& A, const VectorXd& b, const MatrixXd& Aeq, const VectorXd& beq) override
         {
             const int PROBLEM_SIZE = H.rows();
             const int INEQUALITY_CONSTRAINT_SIZE = b.size();
-            const int EQUALITY_CONSTRAINT_SIZE = beq.size();
+            const int EQUALITY_CONSTRAINT_SIZE = beq.size();&
             if(EQUALITY_CONSTRAINT_SIZE != 0)
                 throw std::runtime_error("DQ_QPOASESSolver::solve_quadratic_program(): Equality constraints are not implemented yet.");
 
