@@ -72,7 +72,7 @@ namespace DQ_robotics
 
     public:
         DQ_QPOASESSolver():
-        qpoases_solve_first_time_(false)
+        qpoases_solve_first_time_(true)
         {
         }
         ~DQ_QPOASESSolver()=default;
