@@ -58,3 +58,9 @@ jobs:
           cd cpp-examples
           chmod +x .build_qpoases.sh
           ./.build_qpoases.sh
+
+      - name: Test examples
+        run: |
+          cd cpp-examples
+          chmod +x .test_qpoases.sh
+          ./.test_qpoases.sh
