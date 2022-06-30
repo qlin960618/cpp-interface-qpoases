@@ -19,7 +19,6 @@ This file is part of DQ Robotics.
 Contributors:
 - Murilo M. Marinho        (murilo@g.ecc.u-tokyo.ac.jp)
 */
-
 #pragma once
 
 #include <vector>
@@ -45,7 +44,7 @@ namespace DQ_robotics
         int_t maximum_working_set_recalculations_;
 
         //Overload this method in a child class to change the configuration.
-        virtual void _config_solver(SQProblem& cplex)
+        virtual void _config_solver()
         {
             Options options;
             options.printLevel = qpOASES::PrintLevel::PL_NONE;
@@ -101,7 +100,7 @@ namespace DQ_robotics
         {
             const int PROBLEM_SIZE = H.rows();
             const int INEQUALITY_CONSTRAINT_SIZE = b.size();
-            const int EQUALITY_CONSTRAINT_SIZE = beq.size();&
+            const int EQUALITY_CONSTRAINT_SIZE = beq.size();
             if(EQUALITY_CONSTRAINT_SIZE != 0)
                 throw std::runtime_error("DQ_QPOASESSolver::solve_quadratic_program(): Equality constraints are not implemented yet.");
 
@@ -136,15 +135,19 @@ namespace DQ_robotics
             if(qpoases_solve_first_time_)
             {
                 qpoases_problem_ = SQProblem( PROBLEM_SIZE,INEQUALITY_CONSTRAINT_SIZE, HST_POSDEF );
-                _config_solver(qpoases_problem_);
-                auto problem_init_return = qpoases_problem_.init( H_vec,g_vec,A_vec,NULL,NULL,NULL,ubA_vec, maximum_working_set_recalculations_ );
+                _config_solver();
+                auto maximum_working_set_recalculations_local = maximum_working_set_recalculations_; //qpOASES changes the value, so we make a local copy
+                auto problem_init_return = qpoases_problem_.init( H_vec,g_vec,A_vec,NULL,NULL,NULL,ubA_vec, maximum_working_set_recalculations_local );
                 if(problem_init_return != SUCCESSFUL_RETURN)
                     throw std::runtime_error("DQ_QPOASESSolver::solve_quadratic_program(): Unable to solve quadratic program.");
                 qpoases_solve_first_time_ = false;
             }
             else
             {
-                qpoases_problem_.hotstart(H_vec,g_vec,A_vec,NULL,NULL,NULL,ubA_vec, maximum_working_set_recalculations_ );
+                auto maximum_working_set_recalculations_local = maximum_working_set_recalculations_; //qpOASES changes the value, so we make a local copy
+                auto problem_init_return = qpoases_problem_.hotstart(H_vec,g_vec,A_vec,NULL,NULL,NULL,ubA_vec, maximum_working_set_recalculations_local );
+                if(problem_init_return != SUCCESSFUL_RETURN)
+                    throw std::runtime_error("DQ_QPOASESSolver::solve_quadratic_program(): Unable to solve quadratic program.");
             }
 
             real_t xOpt[PROBLEM_SIZE];
@@ -158,5 +161,3 @@ namespace DQ_robotics
     };
 
 }
-
-
