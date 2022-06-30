@@ -71,7 +71,10 @@ namespace DQ_robotics
 
 
     public:
-        DQ_QPOASESSolver()=default;
+        DQ_QPOASESSolver():
+        qpoases_solve_first_time_(false)
+        {
+        }
         ~DQ_QPOASESSolver()=default;
 
         void set_maximum_working_set_recalculations(const int& maximum_working_set_recalculations)
