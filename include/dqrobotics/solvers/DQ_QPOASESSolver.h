@@ -113,11 +113,11 @@ namespace DQ_robotics
 
             //Inequality constraints
             if(b.size()!=A.rows())
-                throw std::runtime_error("DQ_QPOASESSolver::solve_quadratic_program(): size of b="+std::to_string(b.size())+"should be compatible with rows of A="+std::to_string(A.rows())+".");
+                throw std::runtime_error("DQ_QPOASESSolver::solve_quadratic_program(): size of b="+std::to_string(b.size())+" should be compatible with rows of A="+std::to_string(A.rows())+".");
 
             //Equality constraints
             if(beq.size()!=Aeq.rows())
-                throw std::runtime_error("DQ_QPOASESSolver::solve_quadratic_program(): size of beq="+std::to_string(beq.size())+"should be compatible with rows of Aeq="+std::to_string(Aeq.rows())+".");
+                throw std::runtime_error("DQ_QPOASESSolver::solve_quadratic_program(): size of beq="+std::to_string(beq.size())+" should be compatible with rows of Aeq="+std::to_string(Aeq.rows())+".");
 
             std::vector<double> H_std_vec(H.data(), H.data() + H.rows() * H.cols());
             real_t* H_vec = &H_std_vec[0];
