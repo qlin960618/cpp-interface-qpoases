@@ -84,11 +84,11 @@ namespace DQ_robotics
             maximum_working_set_recalculations_ = maximum_working_set_recalculations;
         }
 
-        void set_equality_constraints_tolerance_(const double& equality_constraints_tolerance)
+        void set_equality_constraints_tolerance(const double& equality_constraints_tolerance)
         {
             equality_constraints_tolerance_ = equality_constraints_tolerance;
         }
-        double get_equality_constraints_tolerance_()
+        double get_equality_constraints_tolerance()
         {
             return equality_constraints_tolerance_;
         }
