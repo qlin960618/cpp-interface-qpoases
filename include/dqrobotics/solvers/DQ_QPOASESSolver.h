@@ -43,6 +43,9 @@ namespace DQ_robotics
         //Page 14 of https://www.coin-or.org/qpOASES/doc/3.0/manual.pdf
         int_t maximum_working_set_recalculations_;
 
+        //implimentation of the equality constraints is done via appending it and recipical of it to the inequalities
+        double_t equality_constraints_tolerance_ = DQ_threshold;
+
         //Overload this method in a child class to change the configuration.
         virtual void _config_solver()
         {
@@ -81,6 +84,15 @@ namespace DQ_robotics
             maximum_working_set_recalculations_ = maximum_working_set_recalculations;
         }
 
+        void set_equality_constraints_tolerance_(const double& equality_constraints_tolerance)
+        {
+            equality_constraints_tolerance_ = equality_constraints_tolerance;
+        }
+        double get_equality_constraints_tolerance_()
+        {
+            return equality_constraints_tolerance_;
+        }
+
         /**
          * @brief
          *   Solves the following quadratic program
@@ -101,8 +113,21 @@ namespace DQ_robotics
             const int PROBLEM_SIZE = H.rows();
             const int INEQUALITY_CONSTRAINT_SIZE = b.size();
             const int EQUALITY_CONSTRAINT_SIZE = beq.size();
+
+            MatrixXd A_extended(INEQUALITY_CONSTRAINT_SIZE,PROBLEM_SIZE);
+            A_extended << A;
+            VectorXd b_extended(INEQUALITY_CONSTRAINT_SIZE);
+            b_extended << b;
             if(EQUALITY_CONSTRAINT_SIZE != 0)
-                throw std::runtime_error("DQ_QPOASESSolver::solve_quadratic_program(): Equality constraints are not implemented yet.");
+            {
+                //throw std::runtime_error("DQ_QPOASESSolver::solve_quadratic_program(): Equality constraints are not implemented yet.");
+                A_extended.resize(INEQUALITY_CONSTRAINT_SIZE + EQUALITY_CONSTRAINT_SIZE*2, PROBLEM_SIZE);
+                A_extended << A,Aeq,-Aeq;
+                b_extended.resize(INEQUALITY_CONSTRAINT_SIZE + EQUALITY_CONSTRAINT_SIZE*2);
+                b_extended <<b,
+                        beq+VectorXd::Constant(equality_constraints_tolerance_, EQUALITY_CONSTRAINT_SIZE)
+                        -beq+VectorXd::Constant(equality_constraints_tolerance_, EQUALITY_CONSTRAINT_SIZE);
+            }
 
             ///Check sizes
             //Objective function
@@ -122,19 +147,19 @@ namespace DQ_robotics
             std::vector<double> H_std_vec(H.data(), H.data() + H.rows() * H.cols());
             real_t* H_vec = &H_std_vec[0];
 
-            MatrixXd AT = A.transpose();
+            MatrixXd AT = A_extended.transpose();
             std::vector<double> A_std_vec(AT.data(), AT.data() + AT.rows() * AT.cols());
             real_t* A_vec = &A_std_vec[0];
 
             auto g_std_vec = _vectorxd_to_std_vector_double(f);
             real_t* g_vec = &g_std_vec[0];
 
-            auto b_std_vec = _vectorxd_to_std_vector_double(b);
+            auto b_std_vec = _vectorxd_to_std_vector_double(b_extended);
             real_t* ubA_vec = &b_std_vec[0];
 
             if(qpoases_solve_first_time_)
             {
-                qpoases_problem_ = SQProblem( PROBLEM_SIZE,INEQUALITY_CONSTRAINT_SIZE, HST_POSDEF );
+                qpoases_problem_ = SQProblem( PROBLEM_SIZE,INEQUALITY_CONSTRAINT_SIZE + EQUALITY_CONSTRAINT_SIZE*2, HST_POSDEF );
                 _config_solver();
                 auto maximum_working_set_recalculations_local = maximum_working_set_recalculations_; //qpOASES changes the value, so we make a local copy
                 auto problem_init_return = qpoases_problem_.init( H_vec,g_vec,A_vec,NULL,NULL,NULL,ubA_vec, maximum_working_set_recalculations_local );
