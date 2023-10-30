@@ -128,9 +128,6 @@ namespace DQ_robotics
                         beq+VectorXd::Constant(EQUALITY_CONSTRAINT_SIZE, equality_constraints_tolerance_),
                         -beq+VectorXd::Constant(EQUALITY_CONSTRAINT_SIZE, equality_constraints_tolerance_);
             }
-//            std::cout<<"const"<<VectorXd::Constant(EQUALITY_CONSTRAINT_SIZE, equality_constraints_tolerance_)<<std::endl;
-//            std::cout<<"A_extended"<<A_extended<<std::endl;
-//            std::cout<<"b_extended"<<b_extended<<std::endl;
 
             ///Check sizes
             //Objective function
