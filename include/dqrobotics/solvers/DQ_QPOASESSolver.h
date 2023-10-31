@@ -26,15 +26,15 @@ Contributors:
 #include <dqrobotics/solvers/DQ_QuadraticProgrammingSolver.h>
 
 #include <eigen3/Eigen/Dense>
+
 using namespace Eigen;
 
 #include <qpOASES.hpp>
+
 USING_NAMESPACE_QPOASES
 
-namespace DQ_robotics
-{
-    class DQ_QPOASESSolver: public DQ_QuadraticProgrammingSolver
-    {
+namespace DQ_robotics {
+    class DQ_QPOASESSolver : public DQ_QuadraticProgrammingSolver {
     protected:
         bool qpoases_solve_first_time_;
         SQProblem qpoases_problem_;
@@ -47,49 +47,44 @@ namespace DQ_robotics
         double_t equality_constraints_tolerance_ = DQ_threshold;
 
         //Overload this method in a child class to change the configuration.
-        virtual void _config_solver()
-        {
+        virtual void _config_solver() {
             Options options;
             options.printLevel = qpOASES::PrintLevel::PL_NONE;
-            qpoases_problem_.setOptions( options );
+            qpoases_problem_.setOptions(options);
             set_maximum_working_set_recalculations(500);
         }
 
         //https://github.com/SmartArmStack/sas_conversions/blob/master/src/eigen3_std_conversions.cpp
         //A copy from sas
-        std::vector<double> _vectorxd_to_std_vector_double(const VectorXd& vectorxd)
-        {
+        std::vector<double> _vectorxd_to_std_vector_double(const VectorXd &vectorxd) {
             std::vector<double> vec(vectorxd.data(), vectorxd.data() + vectorxd.rows() * vectorxd.cols());
             return vec;
         }
 
         //Another copy from sas
-        VectorXd _std_vector_double_to_vectorxd(std::vector<double> std_vector_double)
-        {
-            double* ptr = &std_vector_double[0];
-            Eigen::Map<Eigen::VectorXd> vec(ptr,std_vector_double.size());
+        VectorXd _std_vector_double_to_vectorxd(std::vector<double> std_vector_double) {
+            double *ptr = &std_vector_double[0];
+            Eigen::Map <Eigen::VectorXd> vec(ptr, std_vector_double.size());
             return vec;
         }
 
 
     public:
-        DQ_QPOASESSolver():
-        qpoases_solve_first_time_(true)
-        {
+        DQ_QPOASESSolver() :
+                qpoases_solve_first_time_(true) {
         }
-        ~DQ_QPOASESSolver()=default;
 
-        void set_maximum_working_set_recalculations(const int& maximum_working_set_recalculations)
-        {
+        ~DQ_QPOASESSolver() = default;
+
+        void set_maximum_working_set_recalculations(const int &maximum_working_set_recalculations) {
             maximum_working_set_recalculations_ = maximum_working_set_recalculations;
         }
 
-        void set_equality_constraints_tolerance(const double& equality_constraints_tolerance)
-        {
+        void set_equality_constraints_tolerance(const double &equality_constraints_tolerance) {
             equality_constraints_tolerance_ = equality_constraints_tolerance;
         }
-        double get_equality_constraints_tolerance()
-        {
+
+        double get_equality_constraints_tolerance() {
             return equality_constraints_tolerance_;
         }
 
@@ -108,75 +103,85 @@ namespace DQ_robotics
          * @param beq the m x 1 value for the inequality constraints.
          * @return the optimal x
          */
-        VectorXd solve_quadratic_program(const MatrixXd& H, const VectorXd& f, const MatrixXd& A, const VectorXd& b, const MatrixXd& Aeq, const VectorXd& beq) override
-        {
+        VectorXd solve_quadratic_program(const MatrixXd &H, const VectorXd &f, const MatrixXd &A, const VectorXd &b,
+                                         const MatrixXd &Aeq, const VectorXd &beq) override {
             const int PROBLEM_SIZE = H.rows();
             const int INEQUALITY_CONSTRAINT_SIZE = b.size();
             const int EQUALITY_CONSTRAINT_SIZE = beq.size();
 
-            MatrixXd A_extended(INEQUALITY_CONSTRAINT_SIZE,PROBLEM_SIZE);
-            A_extended << A;
-            VectorXd b_extended(INEQUALITY_CONSTRAINT_SIZE);
-            b_extended << b;
-            if(EQUALITY_CONSTRAINT_SIZE != 0)
-            {
-                //throw std::runtime_error("DQ_QPOASESSolver::solve_quadratic_program(): Equality constraints are not implemented yet.");
-                A_extended.resize(INEQUALITY_CONSTRAINT_SIZE + EQUALITY_CONSTRAINT_SIZE*2, PROBLEM_SIZE);
-                A_extended << A,Aeq,-Aeq;
-                b_extended.resize(INEQUALITY_CONSTRAINT_SIZE + EQUALITY_CONSTRAINT_SIZE*2);
-                b_extended <<b,
-                        beq+VectorXd::Constant(EQUALITY_CONSTRAINT_SIZE, equality_constraints_tolerance_),
-                        -beq+VectorXd::Constant(EQUALITY_CONSTRAINT_SIZE, equality_constraints_tolerance_);
-            }
-
             ///Check sizes
             //Objective function
-            if(H.rows()!=H.cols())
-                throw std::runtime_error("DQ_QPOASESSolver::solve_quadratic_program(): H must be symmetric. H.rows()="+std::to_string(H.rows())+" but H.cols()="+std::to_string(H.cols())+".");
-            if(f.size()!=H.rows())
-                throw std::runtime_error("DQ_QPOASESSolver::solve_quadratic_program(): f must be compatible with H. H.rows()=H.cols()="+std::to_string(H.rows())+" but f.size()="+std::to_string(f.size())+".");
+            if (H.rows() != H.cols())
+                throw std::runtime_error("DQ_QPOASESSolver::solve_quadratic_program(): H must be symmetric. H.rows()=" +
+                                         std::to_string(H.rows()) + " but H.cols()=" + std::to_string(H.cols()) + ".");
+            if (f.size() != H.rows())
+                throw std::runtime_error(
+                        "DQ_QPOASESSolver::solve_quadratic_program(): f must be compatible with H. H.rows()=H.cols()=" +
+                        std::to_string(H.rows()) + " but f.size()=" + std::to_string(f.size()) + ".");
 
             //Inequality constraints
-            if(b.size()!=A.rows())
-                throw std::runtime_error("DQ_QPOASESSolver::solve_quadratic_program(): size of b="+std::to_string(b.size())+" should be compatible with rows of A="+std::to_string(A.rows())+".");
+            if (b.size() != A.rows())
+                throw std::runtime_error(
+                        "DQ_QPOASESSolver::solve_quadratic_program(): size of b=" + std::to_string(b.size()) +
+                        " should be compatible with rows of A=" + std::to_string(A.rows()) + ".");
 
             //Equality constraints
-            if(beq.size()!=Aeq.rows())
-                throw std::runtime_error("DQ_QPOASESSolver::solve_quadratic_program(): size of beq="+std::to_string(beq.size())+" should be compatible with rows of Aeq="+std::to_string(Aeq.rows())+".");
+            if (beq.size() != Aeq.rows())
+                throw std::runtime_error(
+                        "DQ_QPOASESSolver::solve_quadratic_program(): size of beq=" + std::to_string(beq.size()) +
+                        " should be compatible with rows of Aeq=" + std::to_string(Aeq.rows()) + ".");
+
+            MatrixXd A_extended(INEQUALITY_CONSTRAINT_SIZE + EQUALITY_CONSTRAINT_SIZE, PROBLEM_SIZE);
+            A_extended << A, Aeq;
+            VectorXd ub_extended(INEQUALITY_CONSTRAINT_SIZE + EQUALITY_CONSTRAINT_SIZE);
+            ub_extended << b, beq + VectorXd::Constant(EQUALITY_CONSTRAINT_SIZE, equality_constraints_tolerance_);
+            VectorXd lb_extended(INEQUALITY_CONSTRAINT_SIZE + EQUALITY_CONSTRAINT_SIZE);
+            lb_extended << VectorXd::Constant(INEQUALITY_CONSTRAINT_SIZE, -INFTY),
+                    beq - VectorXd::Constant(EQUALITY_CONSTRAINT_SIZE, equality_constraints_tolerance_);
+
+            //if (EQUALITY_CONSTRAINT_SIZE != 0) {
+            //throw std::runtime_error("DQ_QPOASESSolver::solve_quadratic_program(): Equality constraints are not implemented yet.");
+            //}
+
 
             std::vector<double> H_std_vec(H.data(), H.data() + H.rows() * H.cols());
-            real_t* H_vec = &H_std_vec[0];
+            real_t *H_vec = &H_std_vec[0];
 
             MatrixXd AT = A_extended.transpose();
             std::vector<double> A_std_vec(AT.data(), AT.data() + AT.rows() * AT.cols());
-            real_t* A_vec = &A_std_vec[0];
+            real_t *A_vec = &A_std_vec[0];
 
             auto g_std_vec = _vectorxd_to_std_vector_double(f);
-            real_t* g_vec = &g_std_vec[0];
+            real_t *g_vec = &g_std_vec[0];
 
-            auto b_std_vec = _vectorxd_to_std_vector_double(b_extended);
-            real_t* ubA_vec = &b_std_vec[0];
+            auto ub_std_vec = _vectorxd_to_std_vector_double(ub_extended);
+            real_t *ubA_vec = &ub_std_vec[0];
 
-            if(qpoases_solve_first_time_)
-            {
-                qpoases_problem_ = SQProblem( PROBLEM_SIZE,INEQUALITY_CONSTRAINT_SIZE + EQUALITY_CONSTRAINT_SIZE*2, HST_POSDEF );
+            auto lb_std_vec = _vectorxd_to_std_vector_double(lb_extended);
+            real_t *lbA_vec = &lb_std_vec[0];
+
+            if (qpoases_solve_first_time_) {
+                qpoases_problem_ = SQProblem(PROBLEM_SIZE, INEQUALITY_CONSTRAINT_SIZE + EQUALITY_CONSTRAINT_SIZE,
+                                             HST_POSDEF);
                 _config_solver();
                 auto maximum_working_set_recalculations_local = maximum_working_set_recalculations_; //qpOASES changes the value, so we make a local copy
-                auto problem_init_return = qpoases_problem_.init( H_vec,g_vec,A_vec,NULL,NULL,NULL,ubA_vec, maximum_working_set_recalculations_local );
-                if(problem_init_return != SUCCESSFUL_RETURN)
-                    throw std::runtime_error("DQ_QPOASESSolver::solve_quadratic_program(): Unable to solve quadratic program.");
+                auto problem_init_return = qpoases_problem_.init(H_vec, g_vec, A_vec, NULL, NULL, lbA_vec, ubA_vec,
+                                                                 maximum_working_set_recalculations_local);
+                if (problem_init_return != SUCCESSFUL_RETURN)
+                    throw std::runtime_error(
+                            "DQ_QPOASESSolver::solve_quadratic_program(): Unable to solve quadratic program.");
                 qpoases_solve_first_time_ = false;
-            }
-            else
-            {
+            } else {
                 auto maximum_working_set_recalculations_local = maximum_working_set_recalculations_; //qpOASES changes the value, so we make a local copy
-                auto problem_init_return = qpoases_problem_.hotstart(H_vec,g_vec,A_vec,NULL,NULL,NULL,ubA_vec, maximum_working_set_recalculations_local );
-                if(problem_init_return != SUCCESSFUL_RETURN)
-                    throw std::runtime_error("DQ_QPOASESSolver::solve_quadratic_program(): Unable to solve quadratic program.");
+                auto problem_init_return = qpoases_problem_.hotstart(H_vec, g_vec, A_vec, NULL, NULL, lbA_vec, ubA_vec,
+                                                                     maximum_working_set_recalculations_local);
+                if (problem_init_return != SUCCESSFUL_RETURN)
+                    throw std::runtime_error(
+                            "DQ_QPOASESSolver::solve_quadratic_program(): Unable to solve quadratic program.");
             }
 
             real_t xOpt[PROBLEM_SIZE];
-            qpoases_problem_.getPrimalSolution( xOpt );
+            qpoases_problem_.getPrimalSolution(xOpt);
 
             std::vector<double> return_value_std(xOpt, xOpt + PROBLEM_SIZE);
 
