@@ -74,7 +74,7 @@ namespace DQ_robotics
 
     public:
         DQ_QPOASESSolver():
-                qpoases_solve_first_time_(true)
+        qpoases_solve_first_time_(true)
         {
         }
         ~DQ_QPOASESSolver()=default;
@@ -143,7 +143,7 @@ namespace DQ_robotics
 
             MatrixXd AT = A_extended.transpose();
             std::vector<double> A_std_vec(AT.data(), AT.data() + AT.rows() * AT.cols());
-            real_t *A_vec = &A_std_vec[0];
+            real_t* A_vec = &A_std_vec[0];
 
             auto g_std_vec = _vectorxd_to_std_vector_double(f);
             real_t* g_vec = &g_std_vec[0];
