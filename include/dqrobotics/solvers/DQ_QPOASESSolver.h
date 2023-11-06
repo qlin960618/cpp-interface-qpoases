@@ -144,13 +144,20 @@ namespace DQ_robotics
             //Append equality constraints to inequality constraints
             auto A_extended = A;
             auto ub_extended = b;
-            if(EQUALITY_CONSTRAINT_SIZE!=0)
+            if(EQUALITY_CONSTRAINT_SIZE!=0 && INEQUALITY_CONSTRAINT_SIZE!=0)
             {
                 A_extended.resize(INEQUALITY_CONSTRAINT_SIZE + EQUALITY_CONSTRAINT_SIZE*2, PROBLEM_SIZE);
                 A_extended << A, Aeq, -Aeq;
                 ub_extended.resize(INEQUALITY_CONSTRAINT_SIZE + EQUALITY_CONSTRAINT_SIZE*2);
                 ub_extended << b, beq + VectorXd::Constant(EQUALITY_CONSTRAINT_SIZE, equality_constraints_tolerance_),
-                        -beq + VectorXd::Constant(EQUALITY_CONSTRAINT_SIZE, equality_constraints_tolerance_);
+                               -beq + VectorXd::Constant(EQUALITY_CONSTRAINT_SIZE, equality_constraints_tolerance_);
+            } else if(EQUALITY_CONSTRAINT_SIZE!=0)
+            {
+                A_extended.resize(EQUALITY_CONSTRAINT_SIZE*2, PROBLEM_SIZE);
+                A_extended << Aeq, -Aeq;
+                ub_extended.resize(EQUALITY_CONSTRAINT_SIZE*2);
+                ub_extended << beq + VectorXd::Constant(EQUALITY_CONSTRAINT_SIZE, equality_constraints_tolerance_),
+                               -beq + VectorXd::Constant(EQUALITY_CONSTRAINT_SIZE, equality_constraints_tolerance_);
             }
 
             std::vector<double> H_std_vec(H.data(), H.data() + H.rows() * H.cols());
