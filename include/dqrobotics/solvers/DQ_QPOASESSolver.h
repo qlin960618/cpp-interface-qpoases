@@ -17,7 +17,10 @@ This file is part of DQ Robotics.
     along with DQ Robotics.  If not, see <http://www.gnu.org/licenses/>.
 
 Contributors:
-- Murilo M. Marinho        (murilo@g.ecc.u-tokyo.ac.jp)
+- Murilo M. Marinho (murilo@g.ecc.u-tokyo.ac.jp)
+    - Responsible for the original implementation.
+- Quentin Lin (qlin1806@g.ecc.u-tokyo.ac.jp)
+    - Added support for equality constraints
 */
 #pragma once
 
@@ -84,10 +87,20 @@ namespace DQ_robotics
             maximum_working_set_recalculations_ = maximum_working_set_recalculations;
         }
 
+        /**
+         * @brief
+         *  Sets the tolerance for the equality constraints.
+         * @param equality_constraints_tolerance the tolerance for the equality constraints.
+         */
         void set_equality_constraints_tolerance(const double &equality_constraints_tolerance) {
             equality_constraints_tolerance_ = equality_constraints_tolerance;
         }
 
+        /**
+         * @brief
+         *  Gets the tolerance for the equality constraints.
+         * @return the tolerance for the equality constraints.
+         */
         double get_equality_constraints_tolerance() {
             return equality_constraints_tolerance_;
         }
