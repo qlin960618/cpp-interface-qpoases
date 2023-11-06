@@ -133,9 +133,9 @@ namespace DQ_robotics
             auto ub_extended = b;
             if(EQUALITY_CONSTRAINT_SIZE!=0)
             {
-                A_extended.ResizeTo(INEQUALITY_CONSTRAINT_SIZE + EQUALITY_CONSTRAINT_SIZE*2, PROBLEM_SIZE);
+                A_extended.resize(INEQUALITY_CONSTRAINT_SIZE + EQUALITY_CONSTRAINT_SIZE*2, PROBLEM_SIZE);
                 A_extended << A, Aeq, -Aeq;
-                ub_extended.ResizeTo(INEQUALITY_CONSTRAINT_SIZE + EQUALITY_CONSTRAINT_SIZE*2);
+                ub_extended.resize(INEQUALITY_CONSTRAINT_SIZE + EQUALITY_CONSTRAINT_SIZE*2);
                 ub_extended << b, beq + VectorXd::Constant(EQUALITY_CONSTRAINT_SIZE, equality_constraints_tolerance_),
                                   -beq + VectorXd::Constant(EQUALITY_CONSTRAINT_SIZE, equality_constraints_tolerance_);
             }
