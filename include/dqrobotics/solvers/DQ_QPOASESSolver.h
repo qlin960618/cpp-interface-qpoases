@@ -129,11 +129,16 @@ namespace DQ_robotics
                 throw std::runtime_error("DQ_QPOASESSolver::solve_quadratic_program(): size of beq="+std::to_string(beq.size())+" should be compatible with rows of Aeq="+std::to_string(Aeq.rows())+".");
 
             //Append equality constraints to inequality constraints
-            MatrixXd A_extended(INEQUALITY_CONSTRAINT_SIZE + EQUALITY_CONSTRAINT_SIZE*2, PROBLEM_SIZE);
-            A_extended << A, Aeq, -Aeq;
-            VectorXd ub_extended(INEQUALITY_CONSTRAINT_SIZE + EQUALITY_CONSTRAINT_SIZE*2);
-            ub_extended << b, beq + VectorXd::Constant(EQUALITY_CONSTRAINT_SIZE, equality_constraints_tolerance_),
-                              -beq + VectorXd::Constant(EQUALITY_CONSTRAINT_SIZE, equality_constraints_tolerance_);
+            auto A_extended = A;
+            auto ub_extended = b;
+            if(EQUALITY_CONSTRAINT_SIZE!=0)
+            {
+                A_extended.ResizeTo(INEQUALITY_CONSTRAINT_SIZE + EQUALITY_CONSTRAINT_SIZE*2, PROBLEM_SIZE);
+                A_extended << A, Aeq, -Aeq;
+                ub_extended.ResizeTo(INEQUALITY_CONSTRAINT_SIZE + EQUALITY_CONSTRAINT_SIZE*2);
+                ub_extended << b, beq + VectorXd::Constant(EQUALITY_CONSTRAINT_SIZE, equality_constraints_tolerance_),
+                                  -beq + VectorXd::Constant(EQUALITY_CONSTRAINT_SIZE, equality_constraints_tolerance_);
+            }
 
             std::vector<double> H_std_vec(H.data(), H.data() + H.rows() * H.cols());
             real_t* H_vec = &H_std_vec[0];
