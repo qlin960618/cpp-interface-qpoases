@@ -47,7 +47,7 @@ namespace DQ_robotics
         int_t maximum_working_set_recalculations_;
 
         // Equality constraints are handled by means of appended inequality constraints within an equality tolerance threshold.  
-        // initialized to default of DQ_threshold
+        // Initialized to DQ_threshold by default
         double_t equality_constraints_tolerance_ = DQ_threshold;
 
         //Overload this method in a child class to change the configuration.
