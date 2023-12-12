@@ -46,7 +46,8 @@ namespace DQ_robotics
         //Page 14 of https://www.coin-or.org/qpOASES/doc/3.0/manual.pdf
         int_t maximum_working_set_recalculations_;
 
-        //implimentation of the equality constraints is done via appending it and recipical of it to the inequalities
+        // Equality constraints are handled by means of appended inequality constraints within an equality tolerance threshold.  
+        // initialized to default of DQ_threshold
         double_t equality_constraints_tolerance_ = DQ_threshold;
 
         //Overload this method in a child class to change the configuration.
